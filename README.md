@@ -13,14 +13,23 @@ this script logs itself in `freeze.log` in the script folder. use --verbose or -
 * this project specificly the freeze detect filter: https://ffmpeg.org/ffmpeg-filters.html#freezedetect
 
 ## installation
+what you will need:
+0. user on [github](https://github.com)
 1. [python3.6](https://www.python.org/downloads/)
 2. [pip - package installer for python](https://pypi.org/project/pip/)
+    1. curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    2. python3 get-pip.py
+    3. pip is now ready
 3. clone repo
-4. change dir to `src`
-5. run `pip install -r requirements.txt` (on folder)
+    1. git clone https://github.com/avishaycohen/freeze_detect.git
+    2. enter username when prompt
+    3. enter password when prompt
+4. `cd freeze_detect`
+5. run `pip install -r requirements.txt` 
 
 ## usage
-1. once installation has finish, in `src` folder running `python3 freeze_frame_validator.py -h`
+0. `cd src`
+1. `python3 freeze_frame_validator.py -h`
 will give the help man:
 ```
 usage: freeze_frame_validator.py [-h] [-n N] [-d D] [-o O] [-v] U [U ...]
