@@ -11,7 +11,10 @@ A sample project that uses ffmpeg ability to detect freezes in video.
 * this project specificly the freeze detect filter: https://ffmpeg.org/ffmpeg-filters.html#freezedetect
 
 ## installation
-TBD
+1. [python3.6](https://www.python.org/downloads/)
+2. [pip - package installer for python](https://pypi.org/project/pip/)
+3. clone repo
+3. run `pip install -r requirements.txt`
 
 ## usage
 TBD
