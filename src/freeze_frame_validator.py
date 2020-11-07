@@ -11,6 +11,9 @@ import requests
 import sys
 import os
 
+# local imports
+import freeze_utils
+
 # setup options for script
 parser = argparse.ArgumentParser(description='find frozen frames in videos from urls')
 
@@ -50,12 +53,45 @@ download_folder = '../videos'
 if not os.path.exists(download_folder):
     os.makedirs(download_folder)
 
+target_files = []
+
 for url in args.urls:
     logging.debug(f'downloading file: {url}')
     file_name = url.split('/')[-1]
+    # add to list of files
+    target_files.append(download_folder + '/' + file_name)
     if os.path.exists(download_folder + '/' + file_name):
         logging.debug(f'file already exist on disk, skipping download')
         continue
     r = requests.get(url, allow_redirects=True)  # download
     with open(download_folder + '/' + file_name, 'wb') as download_file:
         download_file.write(r.content)  #save to file
+
+logging.debug(f'total file paths: {target_files}')
+
+metadata = {
+    "all_videos_freeze_frame_synced": False,
+    "videos": []
+}
+
+# start analyzing each file
+for path in target_files:
+    # run freeze detect
+    output = freeze_utils.run_freeze_detect(path, args.noise, args.duration)
+    logging.debug(output)
+    # get video duration
+    video_dur = freeze_utils.extract_duration(output)
+    total_duration = freeze_utils.convert_duration_to_total_seconds(video_dur)
+    logging.debug(f'total video duration: {total_duration}')
+    # get start/lenght/end values of freezes
+    video_stamps = freeze_utils.extract_timestamps(output)
+    logging.debug(f'list of timestamps: {video_stamps}')
+    list_of_valids, max_valid_period, total_freeze_time = freeze_utils.analyze_freeze_frames(video_stamps, total_duration)
+    
+    vid_metadata = {
+        "longest_valid_period": max_valid_period,
+        "valid_video_percentage": (total_duration - total_freeze_time) / total_duration * 100,
+        "valid_periods": list_of_valids
+    }
+
+    logging.debug(f'video: {path} metadata: {vid_metadata}')
