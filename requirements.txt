@@ -1,2 +1,3 @@
 # no version specific reqs:
+pytest
 requests
