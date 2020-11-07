@@ -5,6 +5,7 @@ they are standalone and can be re-used in different context
 when ffmpeg freeze detect is needed.
 """
 from datetime import datetime
+import itertools
 import re
 import subprocess
 
@@ -96,3 +97,29 @@ def analyze_freeze_frames(stamps, total):
             curr_max = float(item[1]) - curr
 
     return all_valids, curr_max, total_freeze
+
+
+def check_if_synced(lists):
+    """
+    get multiple lists of start and end values and check if they are
+    considered synced (diff of up to 0.5 second)
+    args:
+        lists, list of lists, each item in sublist is two float numbers, start and end
+    returns: bool,
+        true if lists are synced
+        false if at least one comparision result in value bigger then 0.5        
+    """
+    is_synced = True
+    # create a tuple of all first period values (start, end), etc.
+    for tup in zip(*lists):
+        for i in range(2):
+            # get a list of all "starts" from same tuple
+            curr = [ l[i] for l in tup]
+            # if any pair diff is bigger then 0.5, can't be synced-freeze-wise
+            if any([abs(a-b)>0.5 for (a,b) in list(itertools.combinations(curr, 2))]):
+                is_synced = False
+                break
+        if not is_synced:
+            break
+            
+    return is_synced
