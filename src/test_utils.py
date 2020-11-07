@@ -34,6 +34,27 @@ def test_extract_duration():
         assert (freeze_utils.extract_duration(b"00:01:00.0") == "00:01:00.0")
 
 
+def test_extract_timestamps():
+    """
+    test the duration string extraction util
+    """
+    input = b"""
+          encoder         : Lavc58.112.101 wrapped_avframe
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_start: 4.5045peed=4.68x
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_duration: 5.92258=5.23x
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_end: 10.4271
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_start: 12.012peed=5.33x
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_duration: 2.23557
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_end: 14.2476
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_start: 18.018peed=5.02x
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_duration: 7.37403=5.17x
+[freezedetect @ 0x2f9b340] lavfi.freezedetect.freeze_end: 25.392
+frame= 1742 fps=294 q=-0.0 Lsize=N/A time=00:00:29.06 bitrate=N/A speed=4.91x
+    """
+    expected_output = [('freeze_start', '4.5045'), ('freeze_duration', '5.92258'), ('freeze_end', '10.4271'), ('freeze_start', '12.012'), ('freeze_duration', '2.23557'), ('freeze_end', '14.2476'), ('freeze_start', '18.018'), ('freeze_duration', '7.37403'), ('freeze_end', '25.392')]
+    assert (freeze_utils.extract_timestamps(input) == expected_output)
+
+
 def test_inverter_stamps():
     """
     test the inverter function
