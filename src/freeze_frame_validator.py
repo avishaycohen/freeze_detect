@@ -5,6 +5,7 @@ between the videos freeze-wise, which means the videos
 have the same freeze frames in them.
 """
 import argparse
+import json
 import logging
 from urllib.parse import urlparse
 import requests
@@ -29,6 +30,11 @@ parser.add_argument('-d' ,'--duration', type=int, metavar='D',
                     help='freeze duration until notification, default 2',
                     default=2)
 
+# add option to save to file
+parser.add_argument('-o', '--output', type=str, metavar='O',
+                    help='file name to save result json to. if none, will print the json to standard output.',
+                    default='')
+
 # log level option
 parser.add_argument('-v', '--verbose', help='more information in logs',
                     action='store_true')
@@ -37,8 +43,11 @@ args = parser.parse_args()
 
 # setup logger options
 log_level = logging.DEBUG if args.verbose else logging.INFO
-logging.basicConfig(format='%(asctime)s %(message)s', level=log_level)
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                    level=log_level,
+                    filename='freeze.log')
 
+logging.info(f'##### program starting, hello #####')
 logging.info(f'user input arguments: {args}')
 
 # verify actual mp4 urls
@@ -70,8 +79,7 @@ for url in args.urls:
 logging.debug(f'total file paths: {target_files}')
 
 metadata = {
-    "all_videos_freeze_frame_synced": False,
-    "videos": []
+    'videos': []
 }
 
 # start analyzing each file
@@ -85,13 +93,30 @@ for path in target_files:
     logging.debug(f'total video duration: {total_duration}')
     # get start/lenght/end values of freezes
     video_stamps = freeze_utils.extract_timestamps(output)
+    if not video_stamps:
+        logging.error('could not find freeze detect success in output. please change noise or duration values')
+        sys.exit()
     logging.debug(f'list of timestamps: {video_stamps}')
     list_of_valids, max_valid_period, total_freeze_time = freeze_utils.analyze_freeze_frames(video_stamps, total_duration)
     
     vid_metadata = {
-        "longest_valid_period": max_valid_period,
-        "valid_video_percentage": (total_duration - total_freeze_time) / total_duration * 100,
-        "valid_periods": list_of_valids
+        'longest_valid_period': max_valid_period,
+        'valid_video_percentage': (total_duration - total_freeze_time) / total_duration * 100,
+        'valid_periods': list_of_valids
     }
-
+    # add current video to list of all videos
+    metadata['videos'].append(vid_metadata)
     logging.debug(f'video: {path} metadata: {vid_metadata}')
+
+metadata['all_videos_freeze_frame_synced'] = freeze_utils.check_if_synced([item['valid_periods'] for item in metadata['videos']])
+
+logging.debug(f'final metadata: \n{metadata}')
+
+if args.output:
+    with open(args.output, 'w+') as target_file:
+        json.dump(metadata, target_file)
+else:
+    logging.info(f'result of request: \n\n\n{json.dumps(metadata)}\n\n')
+    print(json.dumps(metadata))
+
+logging.info(f'##### program finished, goodbye #####')
